@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+
+
+    <template id="portal_my_home_purchase" name="Portal My Home : purchase entry" inherit_id="portal.portal_my_home" priority="25">
+    <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+      <t t-if="purchase_count" t-call="portal.portal_docs_entry">
+      <t t-set="title">Request for Quotations</t>
+                <t t-set="url" t-value="'/my/Quotation'"/>
+                <t t-set="count" t-value="website.quotation_count()"/>
+      </t>
+        <t t-if="1" t-call="portal.portal_docs_entry">
+
+            <t t-set="title">Purchase tenders</t>
+            <t t-set="url" t-value="'/my/purchase'"/>
+            <t t-set="count" t-value="website.purchase_tender()"/>
+        </t>
+    </xpath>
+  </template>
+
+
+    <template id="portal_my_purchase_quotations" name="Portal: My Purchase quotations">
+        <t t-call="portal.portal_layout">
+      <t t-call="portal.portal_searchbar">
+        <t t-set="title">Request for quotation</t>
+      </t>
+        <t t-if="orders" t-call="portal.portal_table">
+            <thead>
+          <tr class="active">
+            <th>Purchase orders#</th>
+              <th></th>
+<!--            <th>Tender</th>-->
+            <th>Order Date</th>
+            <th></th>
+              <th></th>
+              <th>Total</th>
+          </tr>
+        </thead>
+             <tbody>
+          <t t-foreach="orders" t-as="order">
+            <tr>
+              <td><a t-attf-href="/my/purchase/#{order.id}?#{keep_query()}"><t t-esc="order.name"/></a></td>
+                <td></td>
+<!--                <td><a t-attf-href="/my/tender/#{order.requisition_id.id}?#{keep_query()}"><t t-esc="order.requisition_id.name"/></a></td>-->
+
+              <td><span t-field="order.date_order"/></td>
+              <td>
+                <t t-if="order.invoice_status == 'to invoice'">
+                  <span class="badge badge-info"><i class="fa fa-fw fa-file-text"/> Waiting for Bill</span>
+                </t>
+                <t t-if="order.state == 'cancel'">
+                  <span class="badge badge-secondary"><i class="fa fa-fw fa-remove"/> Cancelled</span>
+                </t>
+              </td>
+                <td><span t-field="order.state"/></td>
+              <td><span t-field="order.amount_total" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/></td>
+
+            </tr>
+          </t>
+        </tbody>
+        </t>
+        </t>
+    </template>
+
+
+
+  <template id="portal_my_purchase_orders" name="Portal: My Purchase Orders">
+    <t t-call="portal.portal_layout">
+      <t t-call="portal.portal_searchbar">
+        <t t-set="title">Requisition Orders</t>
+      </t>
+      <t t-if="tenders" t-call="portal.portal_table">
+        <thead>
+          <tr class="active">
+            <th>Tender</th>
+            <th>Vendor</th>
+            <th>Purchase Representative</th>
+            <th>Agreement Deadline</th>
+              <th>Status</th>
+              <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="tenders" t-as="tender">
+              <t t-set="tender_orders" t-value="website.tender_related_order(tender.id)"/>
+            <tr>
+              <td><a t-attf-href="/my/tender/#{tender.id}?#{keep_query()}"><t t-esc="tender.name"/></a></td>
+                <td><span t-field="tender.vendor_id"/></td>
+                <td><span t-field="tender.user_id"/></td>
+                <td><span t-field="tender.date_end"/></td>
+                <td><span t-field="tender.state"/></td>
+                <td>
+
+                        <t t-if="tender_orders">
+
+                      <p style="width:20%;padding:20px"><a class="btn btn-secondary" t-attf-href="/my/purchase/#{tender_orders.id}?#{keep_query()}" title="Update Bid">Update Bid</a></p>
+
+
+                    </t>
+
+                  <t t-else="">
+
+                      <p style="width:20%;padding:20px"><a class="btn btn-secondary" t-attf-href="/create/quotation/#{tender.id}?#{keep_query()}" title="Update Bid">Add Bid</a></p>
+
+                  </t>
+
+
+                </td>
+            </tr>
+          </t>
+        </tbody>
+      </t>
+    </t>
+  </template>
+
+
+    <template id="sale_order_portal_template" name="Sales Order Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+
+          <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+              <t t-set="purchase_order" t-value="order"/>
+              <t t-set="report_url" t-value="order.get_portal_url(report_type='pdf', download=True)"/>
+
+
+
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+
+                    <t t-set="title">
+                        <h2 class="mb-0"><b t-field="order.amount_total" data-id="total_amount"/> </h2>
+                    </t>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <a  role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
+                                    <i class="fa fa-check"/><t> Accept &amp; Sign</t>
+                                </a>
+
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="report_url" title="Download"><i class="fa fa-download"/>
+                                            Download
+                                        </a>
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+
+
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="quote_content" class="col-12 col-lg justify-content-end">
+
+
+
+
+
+                    <!-- modal relative to the actions sign and pay -->
+                    <div role="dialog" class="modal fade" id="modalaccept">
+                        <div class="modal-dialog">
+                            <form id="accept" method="POST" t-att-data-order-id="order.id" t-att-data-token="order.access_token" class="js_accept_json modal-content js_website_submit_form">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <header class="modal-header">
+                                    <h4 class="modal-title">Validate Order</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                </header>
+                                <main class="modal-body" id="sign-dialog">
+                                    <p>
+                                        <span>By signing this proposal, I agree to the following terms:</span>
+                                        <ul>
+                                            <li><span>Accepted on the behalf of:</span> <b t-field="order.partner_id.commercial_partner_id"/></li>
+                                            <li><span>For an amount of:</span> <b data-id="total_amount" t-field="order.amount_total"/></li>
+                                            <li t-if="order.payment_term_id"><span>With payment terms:</span> <b t-field="order.payment_term_id.note"/></li>
+                                        </ul>
+                                    </p>
+                                    <t t-call="portal.signature_form">
+                                        <t t-set="call_url" t-value="order.get_portal_url(suffix='/accept')"/>
+                                        <t t-set="default_name" t-value="order.partner_id.name"/>
+                                    </t>
+                                </main>
+                            </form>
+                        </div>
+
+                    </div>
+
+
+
+
+
+
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="portal_purchase.portal_my_purchase_order"/>
+                    </div>
+
+
+
+
+                    <!-- status messages -->
+                    <div t-if="message == 'sign_ok'" class="alert alert-success alert-dismissable d-print-none" role="status">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
+                        <strong>Thank You!</strong><br/>
+                        <t t-if="message == 'sign_ok' and sale_order.state in ['sale', 'done']">Your order has been confirmed.</t>
+                        <t t-elif="message == 'sign_ok' and sale_order.has_to_be_paid()">Your order has been signed but still needs to be paid to be confirmed.</t>
+                        <t t-else="">Your order has been signed.</t>
+                    </div>
+
+                    <div t-if="message == 'cant_reject' and sale_order.has_to_be_signed()" class="alert alert-danger alert-dismissable d-print-none" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
+                        Your order is not in a state to be rejected.
+                    </div>
+
+
+
+                    <!-- chatter -->
+                    <div id="sale_order_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="order"/>
+                        </t>
+                    </div>
+                </div><!-- // #quote_content -->
+            </div>
+        </xpath>
+</template>
+
+
+
+
+
+
+ <template id="tender_portal_template" name="Sales Order Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+
+          <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+              <t t-set="purchase_order" t-value="order"/>
+<!--              <t t-set="report_url" t-value="/my/tender/#{order.id}?#{keep_query(report_type='pdf', download=True)}"/>-->
+""
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+
+<!--                    <t t-set="title">-->
+<!--                        <h2 class="mb-0"><b t-field="order.amount_total" data-id="total_amount"/> </h2>-->
+<!--                    </t>-->
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+
+                                        <a class="btn btn-secondary" t-attf-href="/my/tender/#{order.id}?#{keep_query(report_type='pdf', download=True)}">download</a>
+                                    </div>
+
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+    </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="quote_content" class="col-12 col-lg justify-content-end">
+
+
+
+
+
+
+                         <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="portal_purchase.portal_my_purchase_tender"/>
+                    </div>
+    <!-- chatter -->
+                    <div id="sale_order_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="order"/>
+                        </t>
+                    </div>
+                </div><!-- // #quote_content -->
+            </div>
+        </xpath>
+</template>
+
+
+
+
+
+
+
+
+
+
+
+<!--Testing code  #####################################-->
+  <template id="portal_my_purchase_order" name="Portal: My Purchase Order">
+
+
+      <t t-set="purchase_order" t-value="order"/>
+      <div id="optional_placeholder"></div>
+      <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-lg-12">
+                  <h4>
+                    <t t-if="order.state in ['draft', 'sent']">
+                      Request for Quotation
+                    </t>
+                    <t t-else="1">
+                      Purchase Order
+                    </t>
+                    <span t-esc="order.name"/>
+                  </h4>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+               <div class="row">
+                  <div class="col-lg-6">
+                    <strong>Vendor:</strong> <span t-field="order.partner_id"/>
+                      <p></p>
+
+
+
+                    </div>
+
+              <div class="col-lg-6">
+                  <strong>Order Date:</strong> <span t-field="order.date_approve"/><br/>
+
+                <strong>Purchase Agreement:</strong><a t-attf-href="/my/tender/#{order.requisition_id.id}?#{keep_query()}"><t t-esc="order.requisition_id.name"/></a>
+<!--                  <a><span t-field="order.requisition_id"/></a>-->
+                  <p></p>
+              </div>
+              </div>
+            </div>
+            <div class="card-body">
+<!--              <div class="mb8">-->
+<!--                  <strong>Date:</strong> <span t-field="order.date_order" t-options='{"widget": "date"}'/>-->
+<!--              </div>-->
+              <div class="row">
+                  <t t-if="not edit">
+                <div class="col-lg-4">
+                  <strong>Product</strong>
+                </div>
+                  </t>
+                  <t t-else="">
+                      <div class="col-lg-6">
+                  <strong>Product</strong>
+                </div>
+                  </t>
+                <div class="col-lg-2 text-right">
+                  <strong>Unit Price</strong>
+                </div>
+                <div class="col-lg-2 text-right">
+                  <strong>Quantity</strong>
+                </div>
+                <div class="col-lg-2 text-right">
+                  <strong>Subtotal</strong>
+                </div>
+              </div>
+                <t t-if="not edit">
+
+                    <t t-foreach="order.order_line" t-as="ol">
+                <form id="id_form" role='form' action="/purchase/price" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+              <t t-set="current_subtotal" t-value="0"/>
+
+                <t t-set="current_subtotal" t-value="current_subtotal + ol.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                <t t-set="current_subtotal" t-value="current_subtotal + ol.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+
+                  <div t-if="not ol.display_type" class="row purchases_vertical_align">
+                  <div class="col-lg-1 text-center">
+                      <img t-att-src="image_data_uri(resize_to_48(ol.product_id.image_128))" alt="Product"/>
+                  </div>
+                  <div id='product_name' class="col-lg-3">
+                    <span t-esc="ol.name"/>
+                      <input name="product_id" t-att-value="ol.product_id.id" type="hidden"/>
+                  </div>
+                  <div class="col-lg-2 text-right">
+<!--                    <span t-field="ol.price_unit" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>-->
+                        <input id="unit_price" name="price_unit" t-att-value="ol.price_unit" style="width:50%"/>
+                  </div>
+                  <div class="col-lg-2 text-right">
+                      <span t-esc="ol.product_qty"/>
+                      <input name="product_qty" t-att-value="ol.product_qty" type="hidden"/>
+                      <input name="product_uom" t-att-value="ol.product_uom.id" type="hidden"/>
+                      <input name="order_id" t-att-value="ol.order_id.id" type="hidden"/>
+
+                  </div>
+                  <div class="col-lg-2 text-right">
+                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                  </div>
+                      <div class="col-lg-2 text-right">
+                          <button type="submit">
+                        <span>Update</span>
+                  </button>
+                      </div>
+                </div>
+
+
+
+                <t t-if="ol.display_type == 'line_section'">
+                    <div class="col-lg-12 bg-200">
+                        <strong t-esc="ol.name"/>
+                    </div>
+                    <t t-set="current_section" t-value="ol"/>
+                    <t t-set="current_subtotal" t-value="0"/>
+                </t>
+                <t t-elif="ol.display_type == 'line_note'">
+                    <div class="col-lg-12 font-italic">
+                        <span t-esc="ol.name"/>
+                    </div>
+                </t>
+                <t t-if="current_section and (ol_last or order.order_line[ol_index+1].display_type == 'line_section')">
+                  <div class="row">
+                    <div class="col-lg-10 text-right">Subtotal</div>
+                    <div class="col-lg-2 text-right">
+                      <span
+                            t-esc="current_subtotal"
+                            t-options='{"widget": "monetary", "display_currency": order.currency_id}'
+                          />
+                    </div>
+                  </div>
+                </t>
+
+
+              <hr/>
+                    </form>
+                        </t>
+
+
+                    <br/>
+
+                    <a class="btn btn-secondary" t-attf-href="/purchase/edit/#{order.id}?#{keep_query()}" title="Edit Bid">Update Bid</a>
+                    </t>
+                    <t t-else="">
+
+                        <t t-set="current_subtotal" t-value="0"/>
+              <t t-foreach="order.order_line" t-as="ol">
+                <t t-set="current_subtotal" t-value="current_subtotal + ol.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                <t t-set="current_subtotal" t-value="current_subtotal + ol.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+
+                  <div t-if="not ol.display_type" class="row purchases_vertical_align">
+                  <div class="col-lg-1 text-center">
+                      <img t-att-src="image_data_uri(resize_to_48(ol.product_id.image_128))" alt="Product"/>
+                  </div>
+                  <div id='product_name' class="col-lg-5">
+                    <span t-esc="ol.name"/>
+
+                  </div>
+                  <div class="col-lg-2 text-right">
+                    <span t-field="ol.price_unit" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+
+                  </div>
+                  <div class="col-lg-2 text-right">
+                      <span t-esc="ol.product_qty"/>
+
+                  </div>
+                  <div class="col-lg-2 text-right">
+                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                  </div>
+                </div>
+
+
+
+                <t t-if="ol.display_type == 'line_section'">
+                    <div class="col-lg-12 bg-200">
+                        <strong t-esc="ol.name"/>
+                    </div>
+                    <t t-set="current_section" t-value="ol"/>
+                    <t t-set="current_subtotal" t-value="0"/>
+                </t>
+                <t t-elif="ol.display_type == 'line_note'">
+                    <div class="col-lg-12 font-italic">
+                        <span t-esc="ol.name"/>
+                    </div>
+                </t>
+                <t t-if="current_section and (ol_last or order.order_line[ol_index+1].display_type == 'line_section')">
+                  <div class="row">
+                    <div class="col-lg-10 text-right">Subtotal</div>
+                    <div class="col-lg-2 text-right">
+                      <span
+                            t-esc="current_subtotal"
+                            t-options='{"widget": "monetary", "display_currency": order.currency_id}'
+                          />
+                    </div>
+                  </div>
+                </t>
+              </t>
+
+              <hr/>
+                        <a class="btn btn-secondary" t-attf-href="/my/purchase/#{order.id}?#{keep_query()}" title="Edit Bid">Edit Bid</a>
+
+                    </t>
+
+
+              <div class="row">
+                <div class="col-lg-12 text-right">
+                  <div class="row">
+                    <div class="col-lg-10 text-right">
+                      Untaxed Amount:
+                    </div>
+                    <div class="col-lg-2 text-right">
+                      <span t-field="order.amount_untaxed" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-10 text-right">
+                      Taxes:
+                    </div>
+                    <div class="col-lg-2 text-right">
+                      <span t-field="order.amount_tax" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-10 text-right">
+                      <strong>Total:</strong>
+                    </div>
+                    <div class="col-lg-2 text-right">
+                      <strong><span t-field="order.amount_total" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/></strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+                <div t-if="order.signature" class="mt32 ml64 mr4" name="signature">
+                <div class="offset-8">
+                    <strong>Signature</strong>
+                </div>
+                <div class="offset-8">
+                    <img t-att-src="image_data_uri(order.signature)" style="max-height: 4cm; max-width: 8cm;"/>
+                </div>
+                <div class="offset-8 text-center">
+                    <p t-field="order.signed_by"/>
+                </div>
+            </div>
+
+
+            </div>
+          </div>
+      </div>
+      <div class="oe_structure mb32"/>
+
+  </template>
+
+
+
+    <template id="report_inherit_template" inherit_id="purchase.report_purchaseorder_document">
+        <xpath expr="//div[@id='total']" position="after">
+
+            <div t-if="o.signature" class="mt32 ml64 mr4" name="signature">
+                <div class="offset-8">
+                    <strong>Signature</strong>
+                </div>
+                <div class="offset-8">
+                    <img t-att-src="image_data_uri(o.signature)" style="max-height: 4cm; max-width: 8cm;"/>
+                </div>
+                <div class="offset-8 text-center">
+                    <p t-field="o.signed_by"/>
+                </div>
+            </div>
+
+        </xpath>
+
+    </template>
+
+
+
+
+
+
+
+
+    <template id="portal_my_purchase_tender" name="Portal: My Purchase tender">
+
+
+      <t t-set="purchase_tender" t-value="tender"/>
+      <div id="optional_placeholder"></div>
+      <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-lg-12">
+                  <h4>
+<!--                    <t t-if="order.state in ['draft', 'sent']">-->
+<!--                      Request for Quotation-->
+<!--                    </t>-->
+<!--                    <t t-else="1">-->
+<!--                      Purchase Order-->
+<!--                    </t>-->
+                    <span t-esc="order.name"/>
+                  </h4>
+                </div>
+              </div>
+            </div>
+              <t t-set="tender_orders" t-value="website.tender_related_order(order.id)"/>
+
+<!--              <a t-attf-href="/my/purchase/#{order.id}?#{keep_query()}"><t t-esc="order.name"/></a>-->
+              <t t-if="tender_orders">
+                   <t t-if="tender_orders">
+<!--                   <t t-foreach="tender_orders" t-as="tender_order">-->
+
+
+                      <p style="width:20%;padding:20px"><a class="btn btn-secondary" t-attf-href="/my/purchase/#{tender_orders.id}?#{keep_query()}" title="Update Bid">Update Bid</a></p>
+
+<!--                  </t>-->
+                    </t>
+
+                  <t t-else="">
+
+                      <p style="width:20%;padding:20px"><a class="btn btn-secondary" t-attf-href="/create/quotation/#{tender.id}?#{keep_query()}" title="Update Bid">Add Bid</a></p>
+
+                  </t>
+              </t>
+
+
+
+
+
+              <div class="card-body">
+              <div class="row">
+                  <div class="col-lg-6">
+
+                      <strong>Purchase Representative:</strong> <span t-field="order.user_id"/>
+                      <p></p>
+                      <strong>Agreement Type:</strong> <span t-field="order.type_id"/>
+                      <p></p>
+                      <strong>Vendor:</strong> <span t-field="order.vendor_id"/>
+
+
+                  </div>
+
+                  <div class="col-lg-6">
+                      <strong>Agreement Deadline:</strong> <span t-field="order.date_end"/>
+                      <p></p>
+                      <strong>Ordering Date:</strong><span t-field="order.ordering_date"/>
+                      <p></p>
+                      <strong>Delivery Date:</strong><span t-field="order.schedule_date"/>
+                      <p></p>
+                      <strong>Source Document Company:</strong> <span t-field="order.origin"/>
+                      <p></p>
+
+
+                  </div>
+
+              </div>
+
+            </div>
+            <div class="card-body">
+<!--              <div class="mb8">-->
+<!--                  <strong>Date:</strong> <span t-field="order.date_order" t-options='{"widget": "date"}'/>-->
+<!--              </div>-->
+              <div class="row">
+                <div class="col-lg-6">
+                  <strong>Product</strong>
+                </div>
+<!--                <div class="col-lg-2 text-right">-->
+<!--                  <strong>Unit Price</strong>-->
+<!--                </div>-->
+                <div class="col-lg-2 text-right">
+                  <strong>Quantity</strong>
+                </div>
+                <div class="col-lg-2 text-right">
+                  <strong>Order Quantity</strong>
+                </div>
+              </div>
+              <t t-set="current_subtotal" t-value="0"/>
+              <t t-foreach="order.line_ids" t-as="ol">
+          <div class="row purchases_vertical_align">
+<!--                  <div class="col-lg-1 text-center">-->
+<!--                      <img t-att-src="image_data_uri(resize_to_48(ol.product_id.image_128))" alt="Product"/>-->
+<!--                  </div>-->
+                  <div id='product_name' class="col-lg-6">
+                    <span t-esc="ol.product_id.name"/>
+                  </div>
+<!--                  <div class="col-lg-2 text-right">-->
+<!--                    <span t-field="ol.price_unit" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>-->
+<!--                  </div>-->
+                    <th></th>
+                  <div class="col-lg-2 text-right">
+                      <span t-esc="ol.product_qty"/>
+                  </div>
+
+                    <div class="col-lg-2 text-right">
+                      <span t-esc="ol.qty_ordered"/>
+                  </div>
+<!--                  <div class="col-lg-2 text-right">-->
+<!--                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>-->
+<!--                  </div>-->
+                </div>
+
+              </t>
+
+              <hr/>
+
+            </div>
+          </div>
+      </div>
+      <div class="oe_structure mb32"/>
+
+  </template>
+
+
+
+</odoo>
+
+
+

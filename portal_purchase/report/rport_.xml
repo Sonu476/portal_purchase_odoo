@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            string="Tender"
+            id="action_report_tender_order"
+            model="purchase.requisition"
+            report_type="qweb-pdf"
+            name="portal_purchase.report_tender"
+            file="portal_purchase.report_tender"
+            print_report_name="
+                (object.state in ('draft', 'in-progress','open') and 'Request for Quotation - %s' % (object.name) or
+                'Purchase Order - %s' % (object.name))"
+        />
+    </data>
+</odoo>

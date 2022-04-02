@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="report_tender_document">
+    <t t-call="web.external_layout">
+        <t t-set="o" t-value="o.with_context(lang=o.user_id.lang)"/>
+        <t t-set="address">
+            <div t-field="o.user_id"
+            t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+            <p t-if="o.user_id.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.user_id.vat"/></p>
+        </t>
+
+        <div class="page">
+            <div class="oe_structure"/>
+
+            <h2 t-if="o.state == 'draft'">Request for Quotation #<span t-field="o.name"/></h2>
+            <h2 t-if="o.state in ['open','in_progress']">Opened Tender<span t-field="o.name"/></h2>
+            <h2 t-if="o.state in ['done']">Closed tender<span t-field="o.name"/></h2>
+            <h2 t-if="o.state == 'cancel'">Cancelled tender<span t-field="o.name"/></h2>
+
+            <div id="informations" class="row mt32 mb32">
+                <div t-if="o.user_id" class="col-3 bm-2">
+                    <strong>Purchase Representative:</strong>
+                    <strong>Agreement Type:</strong>
+                    <strong>Vendor:</strong>
+
+                </div>
+
+                <div class="col-3 bm-2">
+                    <p t-field="o.user_id" class="m-0"/>
+                    <p t-field="o.type_id" class="m-0"/>
+                    <p t-field="o.vendor_id" class="m-0"/>
+                </div>
+
+
+                <div class="col-3 bm-2">
+                    <strong>Agreement Deadline:</strong>
+                    <strong>Ordering Date:</strong>
+                    <br/>
+
+                    <strong>Delivery Date:</strong>
+                    <br/>
+                    <strong>Source Document Company:</strong>
+
+                </div>
+
+                <div class="col-3 bm-2">
+                    <p t-field="o.date_end" class="m-0"/>
+                    <p t-field="o.ordering_date" class="m-0"/>
+                    <t t-if="o.schedule_date">
+                        <p t-field="o.schedule_date" class="m-0"/>
+                    </t>
+                    <t t-else="">
+                        <br/>
+                    </t>
+                    <p t-field="o.origin" class="m-0"/>
+                </div>
+
+            </div>
+
+
+
+
+
+            <table class="table table-sm o_main_table">
+                <thead>
+                    <tr>
+                        <th class="text-left" name="th_description"><strong>Product</strong></th>
+                        <th class="text-center" name="th_taxes"><strong>Quantity</strong></th>
+                        <th class="text-right" name="th_date_req"><strong>Order Quantity</strong></th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <t t-foreach="o.line_ids" t-as="line">
+
+                    <tr>
+
+
+                            <td class="text-left">
+                                    <span t-field="line.product_id.name"/>
+                                </td>
+
+                                <td class="text-center">
+                                    <span t-field="line.product_qty"/>
+                                </td>
+
+                                <td class="text-right">
+                                    <span t-field="line.qty_ordered"/>
+                                </td>
+
+
+                        </tr>
+
+                    </t>
+                </tbody>
+            </table>
+
+            <div class="oe_structure"/>
+        </div>
+    </t>
+</template>
+
+<template id="report_tender">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="portal_purchase.report_tender_document" t-lang="o.user_id.lang"/>
+        </t>
+    </t>
+</template>
+</odoo>
